@@ -1,0 +1,51 @@
+# Exemple de pipeline CI/CD (à placer dans .github/workflows/terraform.yml
+# dans un vrai repo GitHub). Illustre la bonne pratique :
+# - plan automatique sur chaque Pull Request (review avant merge)
+# - apply uniquement sur la branche main, après validation manuelle
+
+name: Terraform
+
+on:
+  pull_request:
+    paths: ["environments/**", "modules/**"]
+  push:
+    branches: [main]
+    paths: ["environments/**", "modules/**"]
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: environments/dev
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.7.5"
+
+      - name: Terraform Format Check
+        run: terraform fmt -check -recursive
+
+      - name: Terraform Init
+        run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
+
+      # tflint / checkov / tfsec : linting et scan de sécurité, bonne pratique
+      # supplémentaire pour détecter les mauvaises configs avant apply
+      - name: Terraform Plan
+        run: terraform plan -var-file="terraform.tfvars" -no-color
+        env:
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}
+
+      # L'étape apply est volontairement conditionnée à la branche main
+      # et devrait idéalement nécessiter une approbation manuelle
+      # (environment protection rules sur GitHub)
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main'
+        run: terraform apply -auto-approve -var-file="terraform.tfvars"
+        env:
+          TF_VAR_db_password: ${{ secrets.DB_PASSWORD }}

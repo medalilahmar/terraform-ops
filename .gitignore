@@ -1,0 +1,27 @@
+# Répertoire local des providers/modules téléchargés
+**/.terraform/*
+
+# Fichiers de lock du provider (à commiter en réalité pour la reproductibilité !
+# décommente la ligne suivante seulement si tu as une bonne raison de l'exclure)
+# .terraform.lock.hcl
+
+# States locaux et leurs backups - NE JAMAIS committer un state
+*.tfstate
+*.tfstate.*
+*.tfstate.backup
+
+# Fichiers de variables contenant potentiellement des secrets
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+
+# Logs de debug Terraform
+crash.log
+crash.*.log
+
+# Fichiers de plan (peuvent contenir des données sensibles du state)
+*.tfplan
+*.tfplan.json
+
+# Fichiers d'environnement
+.env
